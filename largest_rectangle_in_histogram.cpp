@@ -1,57 +1,35 @@
 #include <vector>
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 class Solution {
 public:
+        vector<int> wall;
+        vector<int> dist;
         int largestRectangleArea(vector<int> &height) {
-                int sz = height.size();
-                if (sz == 0)
-                        return 0;
-                if (sz == 1)
-                        return height[0];
-                int s = height[0];
-                vector<int> hi;
-                vector<int> idx;
-                for (auto i = 0; i <= height[0]; i++) {
-                        hi.push_back(i);
-                        idx.push_back(0);
-                }
-                int prev;
-                int cur = height[0];
-                int i;
-                for (i = 1; i < sz; i++) {
-                        prev = cur;
-                        cur = height[i];
-                        if (prev < cur) {
-                                hi.push_back(cur);
-                                idx.push_back(i);
-                                s = s > cur ? s : cur;
-                        }
-                        if (prev >= cur) {
-                                auto j = lower_bound(hi.begin(), hi.end(), cur);
-                                int id = j - hi.begin();
-                                auto k = idx.begin() + id;
-                                int ns = (1 + i - *k) * cur;
-                                s = ns > s ? ns : s;
-                                if (*j == cur) {
-                                        j++;
-                                        k++;
+                wall = {0};
+                dist = {-1};
+                int max = 0;
+                for (auto i = 0; i <= height.size(); i++) {
+                        auto cur = 0;
+                        if (i != height.size())
+                                cur = height[i];
+                        if (cur > wall.back()) {
+                                wall.push_back(cur);
+                                dist.push_back(i);
+                        } else if (cur < wall.back()) {
+                                auto pos = upper_bound(wall.begin(), wall.end(), cur) - wall.begin();
+                                for (auto j = pos; j < wall.size(); j++) {
+                                        auto s = (i - dist[j]) * wall[j];
+                                        max = s > max ? s : max;
                                 }
-
-                                hi.erase(j, hi.end());
-                                idx.erase(k, idx.end());
-                                hi.push_back(cur);
-                                idx.push_back(i);
+                                wall.erase(wall.begin()+pos+1, wall.end());
+                                dist.erase(dist.begin()+pos+1, dist.end());
+                                wall.back() = cur;
                         }
                 }
-                if (prev >= cur)
-                        return s;
-                for (i = 0; i < hi.size(); i++) {
-                        int ns = (sz-idx[i]) * hi[i];
-                        s = ns > s ? ns : s;
-                }
-                return s;
+                return max;
         }
 };
 
